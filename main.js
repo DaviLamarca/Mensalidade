@@ -2,8 +2,25 @@ const prompt = require("prompt-sync")()
 const { PrismaClient } = require('@prisma/client')
 const prisma = new PrismaClient()
 
+async function middle() {
+    const total = await prisma.mensalidade.count();
+    if (total == 0) {
+        await removerIDS()
+    }
+}
+
 async function main() {
-    let resposta = prompt("Qual opção você deseja?\n1 - Adicionar\n2 - listar\n3 - Remover\n4 - Remover IDS\n5 - pagar\n Camando: ")
+    await middle()
+    let resposta = prompt(
+        " ----Mensalidade----\n" +
+        " \x1b[32m1\x1b[0m - \x1b[32mAdicionar Mensalidade\x1b[0m\n" +
+        " \x1b[32m2\x1b[0m - Listar Mensalidades\n" +
+        " \x1b[32m3\x1b[0m - \x1b[31mRemover\x1b[0m\n" +
+        " \x1b[32m4\x1b[0m - Zerar IDs\n" +
+        " \x1b[32m5\x1b[0m - \x1b[33mMarcar como Pago\x1b[0m\n" +
+        " --------------------\n" +
+        "Escolha uma opção (1 a 5):  "
+    );
 
     switch (resposta) {
         case "1":
@@ -113,7 +130,6 @@ async function pagar() {
         let m = valor[i]
         console.log(`${m.id} - ${m.descricao}`);
     }
-    console.log("Qual você pagou: ");
     let resposta = parseInt(prompt(`Qual o ID que você deseja pagar: `))
 
     let pagar = await prisma.mensalidade.update({
