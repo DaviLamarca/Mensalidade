@@ -22,5 +22,5 @@ Este projeto conecta-se a um banco de dados SQLite e conta quantos registros exi
 1. **Clone o repositório:**
 
 ```bash
-git clone https://github.com/seu-usuario/seu-projeto.git
-cd seu-projeto
+https://github.com/DaviLamarca/Mensalidade.git
+cd Mensalidade
