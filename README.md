@@ -24,3 +24,4 @@ Este projeto conecta-se a um banco de dados SQLite e conta quantos registros exi
 ```bash
 https://github.com/DaviLamarca/Mensalidade.git
 cd Mensalidade
+node Main.js
