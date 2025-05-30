@@ -15,7 +15,7 @@ function mensagem() {
         "  \x1b[32m1\x1b[0m - \x1b[32mAdicionar Mensalidade\x1b[0m\n" +
         "  \x1b[32m2\x1b[0m - Listar Mensalidades\n" +
         "  \x1b[32m3\x1b[0m - \x1b[31mRemover\x1b[0m\n" +
-        "  \x1b[32m4\x1b[0m - \x1b[33mMarcar como Pago\x1b[0m\n" +
+        "  \x1b[32m4\x1b[0m - \x1b[33mPagar\x1b[0m\n" +
         "  \x1b[32mby DaviLamarca\x1b[0m\n" +
         "  --------------------\n");
 }
@@ -35,9 +35,6 @@ async function main() {
             await remover()
             break
         case "4":
-            await removerIDS()
-            break
-        case "5":
             await pagar()
             break
         default:
@@ -59,6 +56,7 @@ async function adicionar() {
     let vencimentoStr = prompt('Vencimento (yyyy-mm-dd): ')
 
     try {
+
         valor = parseInt(valor)
         let vencimento = new Date(vencimentoStr)
         let mensalidade = await prisma.mensalidade.create({
@@ -71,18 +69,38 @@ async function adicionar() {
 
         console.log("Mensalidade criada:", mensalidade)
 
+        setTimeout(() => {
+            console.clear();
+            main()
+        }, 3000)
+
     } catch (error) {
-        console.log("Erro em salvar, coloque novamente");
-        console.clear()
-        await main()
+        console.log("\x1b[32m\x1b[0m\x1b[32mErro em salvar: \x1b[0m\n" + error);
+        setTimeout(() => {
+            console.clear()
+            main()
+        }, 2000)
     }
 
 }
 
 async function listar() {
+
+    let mes = new Date().getMonth()
+    let ano = new Date().getFullYear()
+
+    let inicio = new Date(ano, mes, 1)
+    let fim = new Date(ano, mes + 1, 1)
+
     const valor = await prisma.mensalidade.findMany({
-        where: { pago: false },
-    });
+        where: {
+            vencimento: {
+                gte: inicio,
+                lte: fim
+            }
+        }
+    })
+
 
     let valor_total = 0
     for (let i = 0; i < valor.length; i++) {
@@ -106,7 +124,6 @@ async function remover() {
     for (let i = 0; i < valor.length; i++) {
         console.log(`${valor[i].id} - ${valor[i].descricao}`);
     }
-
     let resposta = parseInt(prompt("Qual o ID que você deseja excluir: "))
     try {
 
@@ -124,14 +141,12 @@ async function remover() {
         main()
     }, 3000)
 }
-
 async function removerIDS() {
 
     await prisma.$executeRawUnsafe(
         `DELETE FROM sqlite_sequence WHERE name = 'Mensalidade';`
     )
     console.log("Todos os IDS resetados com sucesso!");
-
     setTimeout(() => {
         console.clear();
         main()
@@ -140,7 +155,6 @@ async function removerIDS() {
 }
 
 async function pagar() {
-
     let valor = await prisma.mensalidade.findMany()
     for (let i = 0; i < valor.length; i++) {
         let m = valor[i]
@@ -149,18 +163,30 @@ async function pagar() {
     let resposta = prompt(`Qual o ID que você deseja pagar: `)
     let respostaInt = parseInt(resposta)
 
+    let find = await prisma.mensalidade.findMany({
+        where: {
+            id: respostaInt
+        }
+    })
+
+    let data = find[0].vencimento
+    let novaData = new Date(data)
+
+    novaData.setMonth(novaData.getMonth() + 1)
+
     let pagar = await prisma.mensalidade.update({
         where: {
             id: respostaInt
         },
         data: {
-            pago: true
+            vencimento: novaData
         }
     })
+    console.log("Já que foi pago, foi adicionado 1 mês");
+
     setTimeout(() => {
         console.clear
         main()
     }, 3000)
-
     console.log(pagar);
 }
